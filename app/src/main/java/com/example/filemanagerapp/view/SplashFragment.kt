@@ -16,7 +16,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.findNavController
 import com.example.filemanagerapp.BuildConfig
+import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentSplashBinding
 
 class SplashFragment : Fragment() {
@@ -86,6 +88,8 @@ class SplashFragment : Fragment() {
                 } else {
                     requestPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
+            } else {
+                findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
             }
         }
     }
@@ -95,6 +99,7 @@ class SplashFragment : Fragment() {
     ) { isGranted ->
         if (isGranted) {
             Toast.makeText(requireContext(), "Permission is granted", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
         } else {
             Toast.makeText(requireContext(), "Permission is not granted", Toast.LENGTH_SHORT).show()
         }

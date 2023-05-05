@@ -37,4 +37,12 @@
     <style name="startIconStyle">
         <item name="android:backgroundTint">@color/md_theme_light_primary</item>
     </style>
+
+    <style name="largeTitleText" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/md_theme_light_primary</item>
+    </style>
+
+    <style name="mediumTitleText" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/md_theme_light_primary</item>
+    </style>
 </resources>
