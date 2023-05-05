@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="72dp"
+    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <Button
@@ -9,7 +9,7 @@
 
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="0dp"
 
         android:insetTop="0dp"
         android:insetBottom="0dp"
@@ -17,6 +17,7 @@
         app:cornerRadius="0dp"
 
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"/>
 
     <com.google.android.material.card.MaterialCardView
@@ -43,6 +44,7 @@
                 style="@style/startIconStyle"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
+                android:visibility="gone"
 
                 android:layout_marginTop="12dp"
                 android:layout_marginStart="12dp"/>
@@ -50,6 +52,21 @@
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/file_card_extension"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/mediumTitleText"
+        android:text="PDF"
+        android:elevation="1dp"
+        android:visibility="gone"
+
+        app:layout_constraintTop_toTopOf="@id/file_material_card"
+        app:layout_constraintBottom_toBottomOf="@id/file_material_card"
+        app:layout_constraintStart_toStartOf="@id/file_material_card"
+        app:layout_constraintEnd_toEndOf="@id/file_material_card"/>
 
     <TextView
         android:id="@+id/file_card_title"
@@ -62,8 +79,32 @@
         android:textSize="16dp"
 
         app:layout_constraintTop_toTopOf="@id/file_card_button"
-        app:layout_constraintBottom_toBottomOf="@id/file_card_button"
+        android:layout_marginTop="4dp"
         app:layout_constraintStart_toEndOf="@id/file_material_card"
         android:layout_marginStart="16dp"/>
+
+    <TextView
+        android:id="@+id/file_size_card"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/mediumTitleText"
+        android:text="Size"
+
+        app:layout_constraintTop_toBottomOf="@id/file_card_title"
+        app:layout_constraintStart_toStartOf="@id/file_card_title"/>
+
+    <TextView
+        android:id="@+id/file_card_date"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/smallTitleText"
+        android:text="01.09.2023"
+
+        app:layout_constraintTop_toBottomOf="@id/file_size_card"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintStart_toStartOf="@id/file_size_card"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

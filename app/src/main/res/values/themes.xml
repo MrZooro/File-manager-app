@@ -45,4 +45,8 @@
     <style name="mediumTitleText" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">@color/md_theme_light_primary</item>
     </style>
+
+    <style name="smallTitleText" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/md_theme_light_primary</item>
+    </style>
 </resources>
