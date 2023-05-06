@@ -55,7 +55,7 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.curFileStateFlow.collect{ newRoot ->
                     adapterList.clear()
-                    newRoot.listFiles()?.let { adapterList.addAll(it.toList()) }
+
                     binding.pathTvHome.text = newRoot.path
 
                     if (newRoot == viewModel.defaultDirectory) {
@@ -64,6 +64,24 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
                         binding.backButtonHome.visibility = View.VISIBLE
                     }
 
+                    val tempFilesList = newRoot.listFiles()
+                    if (tempFilesList != null) {
+                        when (viewModel.getSortBy()) {
+                            2 -> {
+                                tempFilesList.sortByDescending { it.length() }
+                            }
+                            3 -> {
+                                tempFilesList.sortBy { it.length() }
+                            }
+                            4 -> {
+                                tempFilesList.sortByDescending { it.lastModified() }
+                            }
+                            5 -> {
+                                tempFilesList.sortBy { it.lastModified() }
+                            }
+                        }
+                        adapterList.addAll(tempFilesList)
+                    }
                     myAdapter.notifyDataSetChanged()
                 }
             }
@@ -71,8 +89,29 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.sortByStateFlow.collect{
-                    Log.w(tag, it.toString())
+                viewModel.sortByStateFlow.collect{sortBy ->
+                    adapterList.clear()
+                    Log.w(tag, sortBy.toString())
+
+                    val tempFilesList = viewModel.getCurFile().listFiles()
+                    if (tempFilesList != null) {
+                        when (sortBy) {
+                            2 -> {
+                                tempFilesList.sortByDescending { it.length() }
+                            }
+                            3 -> {
+                                tempFilesList.sortBy { it.length() }
+                            }
+                            4 -> {
+                                tempFilesList.sortByDescending { it.lastModified() }
+                            }
+                            5 -> {
+                                tempFilesList.sortBy { it.lastModified() }
+                            }
+                        }
+                        adapterList.addAll(tempFilesList)
+                    }
+                    myAdapter.notifyDataSetChanged()
                 }
             }
         }
