@@ -14,12 +14,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentHomeBinding
 import com.example.filemanagerapp.viewModel.MainViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileFilter
 
 
 class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
@@ -66,6 +69,14 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
             }
         }
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.sortByStateFlow.collect{
+                    Log.w(tag, it.toString())
+                }
+            }
+        }
+
 
 
         binding.backButtonHome.setOnClickListener{
@@ -76,6 +87,10 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
                     viewModel.setCurFile(parentFile)
                 }
             }
+        }
+
+        binding.sortByButtonHome.setOnClickListener{
+            findNavController().navigate(R.id.action_homeFragment_to_sortByFragment)
         }
     }
 

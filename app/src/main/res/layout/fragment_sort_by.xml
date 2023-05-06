@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".view.SortByFragment">
+
+    <TextView
+        android:id="@+id/wasteid_by_size_title_sort_card"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/mediumTitleText"
+        android:text="By size:"
+
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="80dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="16dp"/>
+
+    <TextView
+        android:id="@+id/wasteid_by_date_title_sort_card"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/mediumTitleText"
+        android:text="By last modified:"
+
+        app:layout_constraintTop_toBottomOf="@id/wasteid_by_size_title_sort_card"
+        android:layout_marginTop="128dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/radio_group_sort_card"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="16dp">
+
+        <RadioButton
+            android:id="@+id/alphabetically_rb_sort_card"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="alphabetically"
+            style="@style/myRadioButton" />
+
+        <RadioButton
+            android:id="@+id/biggest_size_rb_sort_card"
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="biggest"
+            style="@style/myRadioButton"
+
+            android:layout_marginTop="52dp"/>
+
+        <RadioButton
+            android:id="@+id/smallest_size_rb_sort_card"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="smallest" />
+
+        <RadioButton
+            android:id="@+id/newest_date_rb_sort_card"
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="newest"
+            style="@style/myRadioButton"
+
+            android:layout_marginTop="52dp"/>
+
+        <RadioButton
+            android:id="@+id/oldest_date_rb_sort_card"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="oldest" />
+
+    </RadioGroup>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

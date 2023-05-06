@@ -18,5 +18,18 @@
         android:id="@+id/homeFragment"
         android:name="com.example.filemanagerapp.view.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_sortByFragment"
+            app:destination="@id/sortByFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/sortByFragment"
+        android:name="com.example.filemanagerapp.view.SortByFragment"
+        android:label="fragment_sort_by"
+        tools:layout="@layout/fragment_sort_by" >
+        <action
+            android:id="@+id/action_sortByFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </dialog>
 </navigation>
