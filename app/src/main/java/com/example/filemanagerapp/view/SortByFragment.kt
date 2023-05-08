@@ -14,7 +14,6 @@ import com.example.filemanagerapp.databinding.FragmentSortByBinding
 import com.example.filemanagerapp.viewModel.MainViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-
 class SortByFragment : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentSortByBinding

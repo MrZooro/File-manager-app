@@ -1,7 +1,6 @@
 package com.example.filemanagerapp.view
 
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isGone
-import androidx.core.view.isInvisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -19,10 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentHomeBinding
 import com.example.filemanagerapp.viewModel.MainViewModel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileFilter
 
 
 class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
@@ -42,11 +38,14 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         return binding.root
     }
 
+    private lateinit var adapterList: MutableList<File>
+    private lateinit var myAdapter: FileRecyclerItem
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapterList: MutableList<File> = mutableListOf()
-        val myAdapter = FileRecyclerItem(adapterList, requireContext(), this)
+        adapterList= mutableListOf()
+        myAdapter = FileRecyclerItem(adapterList, requireContext(), this)
         binding.homeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.homeRecyclerView.adapter = myAdapter
 
@@ -65,22 +64,22 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
                     }
 
                     val tempFilesList = newRoot.listFiles()
+
                     if (tempFilesList != null) {
-                        when (viewModel.getSortBy()) {
-                            2 -> {
-                                tempFilesList.sortByDescending { it.length() }
-                            }
-                            3 -> {
-                                tempFilesList.sortBy { it.length() }
-                            }
-                            4 -> {
-                                tempFilesList.sortByDescending { it.lastModified() }
-                            }
-                            5 -> {
-                                tempFilesList.sortBy { it.lastModified() }
-                            }
+                        val fileTypes = viewModel.getFileTypes()
+                        if (fileTypes.isNotEmpty()) {
+                            val newFileList = getFilesByTypes(tempFilesList, viewModel.getFileTypes())
+                            sortList(newFileList, viewModel.getSortBy())
+                            adapterList.addAll(newFileList)
+                        } else {
+                            sortList(tempFilesList, viewModel.getSortBy())
+                            adapterList.addAll(tempFilesList)
                         }
-                        adapterList.addAll(tempFilesList)
+                    }
+                    if (adapterList.isEmpty()) {
+                        binding.noFileTvHome.visibility = View.VISIBLE
+                    } else {
+                        binding.noFileTvHome.visibility = View.GONE
                     }
                     myAdapter.notifyDataSetChanged()
                 }
@@ -91,25 +90,52 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.sortByStateFlow.collect{sortBy ->
                     adapterList.clear()
-                    Log.w(tag, sortBy.toString())
+
+                    val tempFilesList = viewModel.getCurFile().listFiles()
+
+                    if (tempFilesList != null) {
+                        val fileTypes = viewModel.getFileTypes()
+                        if (fileTypes.isNotEmpty()) {
+                            val newFileList = getFilesByTypes(tempFilesList, viewModel.getFileTypes())
+                            sortList(newFileList, sortBy)
+                            adapterList.addAll(newFileList)
+                        } else {
+                            sortList(tempFilesList, sortBy)
+                            adapterList.addAll(tempFilesList)
+                        }
+                    }
+                    if (adapterList.isEmpty()) {
+                        binding.noFileTvHome.visibility = View.VISIBLE
+                    } else {
+                        binding.noFileTvHome.visibility = View.GONE
+                    }
+                    myAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.fileTypesStateFlow.collect{ fileTypesList ->
+                    fileTypesList.forEach { println(it) }
+
+                    adapterList.clear()
 
                     val tempFilesList = viewModel.getCurFile().listFiles()
                     if (tempFilesList != null) {
-                        when (sortBy) {
-                            2 -> {
-                                tempFilesList.sortByDescending { it.length() }
-                            }
-                            3 -> {
-                                tempFilesList.sortBy { it.length() }
-                            }
-                            4 -> {
-                                tempFilesList.sortByDescending { it.lastModified() }
-                            }
-                            5 -> {
-                                tempFilesList.sortBy { it.lastModified() }
-                            }
+                        if (fileTypesList.isNotEmpty()) {
+                            val newFileList = getFilesByTypes(tempFilesList, fileTypesList)
+                            sortList(newFileList, viewModel.getSortBy())
+                            adapterList.addAll(newFileList)
+                        } else {
+                            sortList(tempFilesList, viewModel.getSortBy())
+                            adapterList.addAll(tempFilesList)
                         }
-                        adapterList.addAll(tempFilesList)
+                    }
+                    if (adapterList.isEmpty()) {
+                        binding.noFileTvHome.visibility = View.VISIBLE
+                    } else {
+                        binding.noFileTvHome.visibility = View.GONE
                     }
                     myAdapter.notifyDataSetChanged()
                 }
@@ -131,6 +157,61 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         binding.sortByButtonHome.setOnClickListener{
             findNavController().navigate(R.id.action_homeFragment_to_sortByFragment)
         }
+
+        binding.fileTypesButtonHome.setOnClickListener{
+            val frag = FileTypesFragment()
+            frag.show(requireActivity().supportFragmentManager, "Something")
+        }
+
+    }
+
+    private fun sortList(tempFilesList: MutableList<File>, sortBy: Int) {
+        when (sortBy) {
+            2 -> {
+                tempFilesList.sortByDescending { it.length() }
+            }
+            3 -> {
+                tempFilesList.sortBy { it.length() }
+            }
+            4 -> {
+                tempFilesList.sortByDescending { it.lastModified() }
+            }
+            5 -> {
+                tempFilesList.sortBy { it.lastModified() }
+            }
+        }
+    }
+
+    private fun sortList(tempFilesList: Array<File>, sortBy: Int) {
+        when (sortBy) {
+            2 -> {
+                tempFilesList.sortByDescending { it.length() }
+            }
+            3 -> {
+                tempFilesList.sortBy { it.length() }
+            }
+            4 -> {
+                tempFilesList.sortByDescending { it.lastModified() }
+            }
+            5 -> {
+                tempFilesList.sortBy { it.lastModified() }
+            }
+        }
+    }
+
+    private fun getFilesByTypes(tempFilesList: Array<File>,
+                                fileTypesList: List<String>): MutableList<File> {
+
+        val mutableFileList: MutableList<File> = mutableListOf()
+        for (i in tempFilesList.indices) {
+            for (j in fileTypesList.indices) {
+                if (tempFilesList[i].extension == fileTypesList[j]) {
+                    mutableFileList.add(tempFilesList[i])
+                }
+            }
+        }
+
+        return mutableFileList
     }
 
     override fun onItemClick(clickedFile: File) {

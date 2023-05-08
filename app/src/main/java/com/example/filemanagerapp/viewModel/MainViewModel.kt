@@ -18,6 +18,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val sortByMutableStateFlow: MutableStateFlow<Int> = MutableStateFlow(1)
     val sortByStateFlow: StateFlow<Int> = sortByMutableStateFlow
 
+    private val fileTypesList: MutableList<String> = mutableListOf()
+    private val fileTypesMutableStateFlow: MutableStateFlow<List<String>> = MutableStateFlow(fileTypesList.toList())
+    val fileTypesStateFlow: StateFlow<List<String>> = fileTypesMutableStateFlow
+
     fun setCurFile(newFile: File) {
         curFile = newFile
         curFileMutableFlow.value = curFile
@@ -33,5 +37,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getSortBy(): Int {
         return sortByMutableStateFlow.value
+    }
+
+    fun setFileTypes(newList: List<String>) {
+        fileTypesList.clear()
+        fileTypesList.addAll(newList)
+
+        fileTypesMutableStateFlow.value = fileTypesList.toList()
+    }
+
+    fun getFileTypes(): List<String> {
+        return fileTypesMutableStateFlow.value
     }
 }
