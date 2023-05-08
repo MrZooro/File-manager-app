@@ -222,5 +222,10 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         }
     }
 
+    override fun fileDelete(file: File) {
+        adapterList.remove(file)
+        myAdapter.notifyDataSetChanged()
+    }
+
 
 }

@@ -107,4 +107,17 @@
         android:layout_marginBottom="4dp"
         app:layout_constraintStart_toStartOf="@id/file_size_card"/>
 
+    <Button
+        android:id="@+id/more_ib_home"
+
+        style="?attr/materialIconButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/ic_more_24"
+
+        app:layout_constraintTop_toTopOf="@id/file_card_button"
+        app:layout_constraintBottom_toBottomOf="@id/file_card_button"
+        app:layout_constraintEnd_toEndOf="@id/file_card_button"
+        android:layout_marginEnd="8dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
