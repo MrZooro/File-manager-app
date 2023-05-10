@@ -129,7 +129,9 @@ class SplashFragment : Fragment() {
     }
 
     private fun openHomeFragment() {
-
-        viewModel.fillDatabase()
+        if (!viewModel.databaseIsFilling) {
+            viewModel.databaseIsFilling = true
+            viewModel.fillDatabase()
+        }
     }
 }

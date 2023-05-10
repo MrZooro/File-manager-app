@@ -31,6 +31,8 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
     private val databaseFilledMutableStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val databaseFilledStateFlow: StateFlow<Boolean> = databaseFilledMutableStateFlow
 
+    var databaseIsFilling = false
+
     init {
         saveInfo = application.getSharedPreferences("saveInfo", Context.MODE_PRIVATE)
         dateOfCreationDatabase = saveInfo.getString("dateOfCreationDatabase", "") ?: ""
