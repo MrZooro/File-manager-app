@@ -126,10 +126,6 @@ onClickListener: OnItemClickListener)
 
                     true
                 }
-                R.id.move -> {
-
-                    true
-                }
                 R.id.delete -> {
                     val message: String = if (curFile.isDirectory) {
                         "Are you sure you want to permanently delete the file: " +
