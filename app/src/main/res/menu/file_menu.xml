@@ -2,8 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/rename"
         android:title="rename" />
-    <item android:id="@+id/move"
-        android:title="move" />
     <item android:id="@+id/delete"
         android:title="delete" />
 </menu>
