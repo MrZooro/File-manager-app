@@ -33,6 +33,7 @@
 
         <item name="radioButtonStyle">@style/myRadioButton</item>
         <item name="checkboxStyle">@style/myCheckBox</item>
+        <item name="bottomNavigationStyle">@style/myBottomNavigation</item>
     </style>
 
     <style name="Theme.FileManagerApp" parent="Base.Theme.FileManagerApp" />
@@ -61,5 +62,10 @@
     <style name="myCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
         <item name="buttonTint">@color/md_theme_light_primary</item>
         <item name="android:textColor">@color/md_theme_light_primary</item>
+    </style>
+
+    <style name="myBottomNavigation" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemTextColor">@color/md_theme_light_primary</item>
+        <item name="itemIconTint">@color/md_theme_light_primary</item>
     </style>
 </resources>

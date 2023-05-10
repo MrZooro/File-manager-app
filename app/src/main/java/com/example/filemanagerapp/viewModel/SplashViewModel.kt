@@ -9,7 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.filemanagerapp.model.Repository
 import com.example.filemanagerapp.model.room.FileEntity
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,27 +19,17 @@ import java.lang.Exception
 import java.math.BigInteger
 import java.security.MessageDigest
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+class SplashViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val tag= "MainViewModel"
-
+    private val tag = "SplashViewModel"
     private val repository = Repository.getRepository(getApplication())
-    val defaultDirectory = File(Environment.getExternalStorageDirectory().path)
-
-    private var curFile = defaultDirectory
-    private val curFileMutableFlow: MutableStateFlow<File> = MutableStateFlow(curFile)
-    val curFileStateFlow: StateFlow<File> = curFileMutableFlow
-
-    private val sortByMutableStateFlow: MutableStateFlow<Int> = MutableStateFlow(1)
-    val sortByStateFlow: StateFlow<Int> = sortByMutableStateFlow
-
-    private val fileTypesList: MutableList<String> = mutableListOf()
-    private val fileTypesMutableStateFlow: MutableStateFlow<List<String>> = MutableStateFlow(fileTypesList.toList())
-    val fileTypesStateFlow: StateFlow<List<String>> = fileTypesMutableStateFlow
 
     private var dateOfCreationDatabase: String
-    private var isDatabaseCreated= false
+    private var isDatabaseCreated: Boolean
     private val saveInfo: SharedPreferences
+
+    private val databaseFilledMutableStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val databaseFilledStateFlow: StateFlow<Boolean> = databaseFilledMutableStateFlow
 
     init {
         saveInfo = application.getSharedPreferences("saveInfo", Context.MODE_PRIVATE)
@@ -47,65 +37,59 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         isDatabaseCreated = saveInfo.getBoolean("isDatabaseCreated", false)
     }
 
-    fun setCurFile(newFile: File) {
-        curFile = newFile
-        curFileMutableFlow.value = curFile
+    private fun listFiles(): MutableList<File> {
+        val allFilesList: MutableList<File> = mutableListOf()
+        Log.i(tag, Environment.getExternalStorageDirectory().path)
+        File(Environment.getExternalStorageDirectory().path).walkTopDown().forEach {
+            if (!it.isDirectory) {
+                allFilesList.add(it)
+            }
+        }
+        return allFilesList
     }
 
-    fun getCurFile(): File {
-        return curFile
-    }
+    fun fillDatabase() {
 
-    fun setSortBy(sortBy: Int) {
-        sortByMutableStateFlow.value = sortBy
-    }
+        viewModelScope.launch(Dispatchers.IO){
+            val newFilesList = listFiles()
+            newFilesList.sortByDescending { it.lastModified() }
 
-    fun getSortBy(): Int {
-        return sortByMutableStateFlow.value
-    }
-
-    fun setFileTypes(newList: List<String>) {
-        fileTypesList.clear()
-        fileTypesList.addAll(newList)
-
-        fileTypesMutableStateFlow.value = fileTypesList.toList()
-    }
-
-    fun getFileTypes(): List<String> {
-        return fileTypesMutableStateFlow.value
-    }
-
-    fun getRecentChanged(): Flow<List<FileEntity>> {
-        return repository.getAllRecentChanged()
-    }
-
-    fun fillDatabase(newFilesList: List<File>) {
-        viewModelScope.launch {
             if (!isDatabaseCreated) {
-                for (i in newFilesList.indices) {
-                    val curFile = newFilesList[i]
-                    val newHash = createSHA256(curFile)
-                    val newFileEntity = FileEntity(0, curFile.path, newHash, false)
-                    repository.addFile(newFileEntity)
-                }
                 isDatabaseCreated = true
                 saveInfo.edit().putBoolean("isDatabaseCreated", isDatabaseCreated).apply()
+                var curFile: File
+                var newHash: String
+                var newFileEntity: FileEntity
+                for (i in newFilesList.indices) {
+                    curFile = newFilesList[i]
+                    newHash = createSHA256(curFile)
+                    newFileEntity = FileEntity(0, curFile.path, newHash, false)
+                    repository.addFile(newFileEntity)
+                }
+                databaseFilledMutableStateFlow.value = true
                 return@launch
             }
 
+            databaseFilledMutableStateFlow.value = true
+
             val filesFromDatabase = repository.getAllFiles()
+            var tempFile: File
             for (i in filesFromDatabase.indices) {
-                val tempFile = File(filesFromDatabase[i].path)
+                tempFile = File(filesFromDatabase[i].path)
                 if (!tempFile.exists()) {
                     repository.deleteFile(filesFromDatabase[i].id)
                 }
             }
 
+            var curFile: File
+            var oldFile: FileEntity
+            var newHash: String
             for (i in newFilesList.indices) {
-                val curFile = newFilesList[i]
+                curFile = newFilesList[i]
+
                 if (repository.isExist(curFile.path)) {
-                    val oldFile = repository.getFileId(curFile.path)
-                    val newHash = createSHA256(curFile)
+                    oldFile = repository.getFileId(curFile.path)
+                    newHash = createSHA256(curFile)
                     if (newHash.isNotEmpty()) {
                         if (oldFile.hash == newHash) {
                             repository.updateRecentChanged(false, oldFile.id)
@@ -114,28 +98,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
                 } else {
-                    val hash = createSHA256(curFile)
-                    if (hash.isNotEmpty()) {
-                        val newFile = FileEntity(0, curFile.path, hash, true)
+                    newHash = createSHA256(curFile)
+                    if (newHash.isNotEmpty()) {
+                        Log.i(tag, "Add new file: " + curFile.path)
+                        val newFile = FileEntity(0, curFile.path, newHash, true)
                         repository.addFile(newFile)
                     }
                 }
             }
+            return@launch
         }
     }
 
-    fun createSHA256(file: File): String {
+    private val buffer = ByteArray(1024)
+    private fun createSHA256(file: File): String {
         try {
-            val buffer = ByteArray(1024)
             val inputStream = FileInputStream(file)
 
             val md = MessageDigest.getInstance("SHA-256")
 
+            var bytesRead: Int
             while (true) {
-                val bytesRead = inputStream.read(buffer)
+                bytesRead = inputStream.read(buffer)
                 if (bytesRead > 0) {
                     md.update(buffer, 0, bytesRead)
                 } else {
+                    inputStream.close()
                     break
                 }
             }

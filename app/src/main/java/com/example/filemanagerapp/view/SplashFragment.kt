@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -16,14 +17,24 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.filemanagerapp.BuildConfig
 import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentSplashBinding
+import com.example.filemanagerapp.viewModel.MainViewModel
+import com.example.filemanagerapp.viewModel.SplashViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import java.io.File
 
 class SplashFragment : Fragment() {
 
     private lateinit var binding: FragmentSplashBinding
+    private lateinit var viewModel: SplashViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,6 +42,7 @@ class SplashFragment : Fragment() {
     ): View {
 
         binding = FragmentSplashBinding.inflate(inflater, container, false)
+        viewModel = ViewModelProvider(requireActivity())[SplashViewModel::class.java]
 
         return binding.root
     }
@@ -41,6 +53,17 @@ class SplashFragment : Fragment() {
         binding.motionLayoutSplash.setTransitionListener(object : MotionLayout.TransitionListener {
 
             override fun onTransitionCompleted(motionLayout: MotionLayout?, currentId: Int) {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    repeatOnLifecycle(Lifecycle.State.CREATED) {
+                        viewModel.databaseFilledStateFlow.collect{
+                            if (it) {
+                                Log.i(tag, "Database filled")
+                                findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
+                            }
+                        }
+                    }
+                }
+
                 binding.startButtonSplash.setOnClickListener{
                     checkPermissions()
                 }
@@ -89,7 +112,7 @@ class SplashFragment : Fragment() {
                     requestPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
             } else {
-                findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
+                openHomeFragment()
             }
         }
     }
@@ -99,9 +122,14 @@ class SplashFragment : Fragment() {
     ) { isGranted ->
         if (isGranted) {
             Toast.makeText(requireContext(), "Permission is granted", Toast.LENGTH_SHORT).show()
-            findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
+            openHomeFragment()
         } else {
             Toast.makeText(requireContext(), "Permission is not granted", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun openHomeFragment() {
+
+        viewModel.fillDatabase()
     }
 }

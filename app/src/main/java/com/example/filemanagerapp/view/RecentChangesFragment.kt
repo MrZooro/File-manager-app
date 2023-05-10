@@ -5,56 +5,77 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.filemanagerapp.R
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.filemanagerapp.databinding.FragmentRecentChangesBinding
+import com.example.filemanagerapp.model.room.FileEntity
+import com.example.filemanagerapp.viewModel.MainViewModel
+import kotlinx.coroutines.launch
+import java.io.File
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class RecentChangesFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [RecentChangesFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class RecentChangesFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var binding: FragmentRecentChangesBinding
+    private lateinit var viewModel: MainViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_recent_changes, container, false)
+    ): View {
+
+        binding = FragmentRecentChangesBinding.inflate(inflater, container, false)
+        viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment RecentChangesFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            RecentChangesFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    private lateinit var adapterList: MutableList<File>
+    private lateinit var myAdapter: FileRecyclerItem
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        adapterList = mutableListOf()
+        myAdapter = FileRecyclerItem(adapterList, requireContext(), this)
+        binding.recentChangesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recentChangesRecyclerView.adapter = myAdapter
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.getRecentChanged().collect{
+                    val filesList = convertFileEntity(it)
+                    updateRecyclerView(filesList)
                 }
             }
+        }
+    }
+
+    private fun convertFileEntity(fileEntities: List<FileEntity>): List<File> {
+        val fileList: MutableList<File> = mutableListOf()
+        for (i in fileEntities.indices) {
+            val tempFile = File(fileEntities[i].path)
+            fileList.add(tempFile)
+        }
+        return fileList
+    }
+
+    private fun updateRecyclerView(tempFilesList: List<File>?) {
+        adapterList.clear()
+        if (tempFilesList != null) {
+            adapterList.addAll(tempFilesList)
+        }
+        myAdapter.notifyDataSetChanged()
+    }
+
+    override fun onItemClick(clickedFile: File) {
+    }
+
+    override fun fileDeleted(file: File) {
+    }
+
+    override fun fileRenamed() {
     }
 }
