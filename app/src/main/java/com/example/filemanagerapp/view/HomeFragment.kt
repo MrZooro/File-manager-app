@@ -43,6 +43,7 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (activity as MainActivity).turnOnBottomNavigation()
 
         adapterList= mutableListOf()
         myAdapter = FileRecyclerItem(adapterList, requireContext(), this)

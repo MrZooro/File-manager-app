@@ -194,10 +194,18 @@ onClickListener: OnItemClickListener)
     private fun renameFile(newNameStr: String, curFile: File, textLayout: TextInputLayout,
                            renameDialog: AlertDialog) {
         if (newNameStr.isNotEmpty()) {
-            val newFile = File(
-                curFile.parentFile?.path
-                        + "/" + newNameStr + "." + curFile.extension
-            )
+            val newFile = if (curFile.extension.isNotEmpty()) {
+                File(
+                    curFile.parentFile?.path
+                            + "/" + newNameStr + "." + curFile.extension
+                )
+            } else {
+                File(
+                    curFile.parentFile?.path
+                            + "/" + newNameStr
+                )
+            }
+
             if (newFile.exists()) {
                 textLayout.error = "The file already exists"
             } else {

@@ -32,4 +32,9 @@
             android:id="@+id/action_sortByFragment_to_homeFragment"
             app:destination="@id/homeFragment" />
     </dialog>
+    <fragment
+        android:id="@+id/recentChangesFragment"
+        android:name="com.example.filemanagerapp.view.RecentChangesFragment"
+        android:label="fragment_recent_changes"
+        tools:layout="@layout/fragment_recent_changes" />
 </navigation>
