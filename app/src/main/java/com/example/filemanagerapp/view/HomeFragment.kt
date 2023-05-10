@@ -53,7 +53,6 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.curFileStateFlow.collect{ newRoot ->
-                    adapterList.clear()
 
                     binding.pathTvHome.text = newRoot.path
 
@@ -65,23 +64,7 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
 
                     val tempFilesList = newRoot.listFiles()
 
-                    if (tempFilesList != null) {
-                        val fileTypes = viewModel.getFileTypes()
-                        if (fileTypes.isNotEmpty()) {
-                            val newFileList = getFilesByTypes(tempFilesList, viewModel.getFileTypes())
-                            sortList(newFileList, viewModel.getSortBy())
-                            adapterList.addAll(newFileList)
-                        } else {
-                            sortList(tempFilesList, viewModel.getSortBy())
-                            adapterList.addAll(tempFilesList)
-                        }
-                    }
-                    if (adapterList.isEmpty()) {
-                        binding.noFileTvHome.visibility = View.VISIBLE
-                    } else {
-                        binding.noFileTvHome.visibility = View.GONE
-                    }
-                    myAdapter.notifyDataSetChanged()
+                    updateRecyclerView(tempFilesList, viewModel.getFileTypes(), viewModel.getSortBy())
                 }
             }
         }
@@ -89,27 +72,8 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.sortByStateFlow.collect{sortBy ->
-                    adapterList.clear()
-
-                    val tempFilesList = viewModel.getCurFile().listFiles()
-
-                    if (tempFilesList != null) {
-                        val fileTypes = viewModel.getFileTypes()
-                        if (fileTypes.isNotEmpty()) {
-                            val newFileList = getFilesByTypes(tempFilesList, viewModel.getFileTypes())
-                            sortList(newFileList, sortBy)
-                            adapterList.addAll(newFileList)
-                        } else {
-                            sortList(tempFilesList, sortBy)
-                            adapterList.addAll(tempFilesList)
-                        }
-                    }
-                    if (adapterList.isEmpty()) {
-                        binding.noFileTvHome.visibility = View.VISIBLE
-                    } else {
-                        binding.noFileTvHome.visibility = View.GONE
-                    }
-                    myAdapter.notifyDataSetChanged()
+                    updateRecyclerView(viewModel.getCurFile().listFiles(), viewModel.getFileTypes(),
+                    sortBy)
                 }
             }
         }
@@ -117,27 +81,8 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.fileTypesStateFlow.collect{ fileTypesList ->
-                    fileTypesList.forEach { println(it) }
-
-                    adapterList.clear()
-
-                    val tempFilesList = viewModel.getCurFile().listFiles()
-                    if (tempFilesList != null) {
-                        if (fileTypesList.isNotEmpty()) {
-                            val newFileList = getFilesByTypes(tempFilesList, fileTypesList)
-                            sortList(newFileList, viewModel.getSortBy())
-                            adapterList.addAll(newFileList)
-                        } else {
-                            sortList(tempFilesList, viewModel.getSortBy())
-                            adapterList.addAll(tempFilesList)
-                        }
-                    }
-                    if (adapterList.isEmpty()) {
-                        binding.noFileTvHome.visibility = View.VISIBLE
-                    } else {
-                        binding.noFileTvHome.visibility = View.GONE
-                    }
-                    myAdapter.notifyDataSetChanged()
+                    updateRecyclerView(viewModel.getCurFile().listFiles(), fileTypesList,
+                        viewModel.getSortBy())
                 }
             }
         }
@@ -222,9 +167,35 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         }
     }
 
-    override fun fileDelete(file: File) {
+    private fun updateRecyclerView(tempFilesList: Array<File>?, fileTypes: List<String>, sortBy: Int) {
+        adapterList.clear()
+
+        if (tempFilesList != null) {
+            if (fileTypes.isNotEmpty()) {
+                val newFileList = getFilesByTypes(tempFilesList, fileTypes)
+                sortList(newFileList, sortBy)
+                adapterList.addAll(newFileList)
+            } else {
+                sortList(tempFilesList, sortBy)
+                adapterList.addAll(tempFilesList)
+            }
+        }
+        if (adapterList.isEmpty()) {
+            binding.noFileTvHome.visibility = View.VISIBLE
+        } else {
+            binding.noFileTvHome.visibility = View.GONE
+        }
+        myAdapter.notifyDataSetChanged()
+    }
+
+    override fun fileDeleted(file: File) {
         adapterList.remove(file)
         myAdapter.notifyDataSetChanged()
+    }
+
+    override fun fileRenamed() {
+        updateRecyclerView(viewModel.getCurFile().listFiles(), viewModel.getFileTypes(),
+        viewModel.getSortBy())
     }
 
 

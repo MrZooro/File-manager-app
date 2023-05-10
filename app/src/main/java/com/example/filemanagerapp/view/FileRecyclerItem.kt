@@ -1,8 +1,11 @@
 package com.example.filemanagerapp.view
 
 import android.annotation.SuppressLint
+import androidx.appcompat.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -17,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.filemanagerapp.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputLayout
 import org.w3c.dom.Text
 import java.io.File
 import java.text.SimpleDateFormat
@@ -30,9 +34,11 @@ onClickListener: OnItemClickListener)
     private var mainListener: OnItemClickListener = onClickListener
     private val fileSizePostfix = arrayOf(" bytes", " kilobytes", " megabytes", " gigabytes")
     private val dateFormat = SimpleDateFormat("dd.MM.yyyy, HH:mm:ss", Locale.getDefault())
+    private val tag = "FileRecyclerItem"
     interface OnItemClickListener{
         fun onItemClick(clickedFile: File)
-        fun fileDelete(file: File)
+        fun fileDeleted(file: File)
+        fun fileRenamed()
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -97,6 +103,26 @@ onClickListener: OnItemClickListener)
         popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
             when(menuItem.itemId) {
                 R.id.rename -> {
+                    val renameDialog = MaterialAlertDialogBuilder(context)
+                        .setTitle("Enter a new file name")
+                        .setView(R.layout.dialog_rename)
+                        .create()
+                    renameDialog.show()
+
+                    val renameButton = renameDialog.findViewById<Button>(R.id.rename_tb_dialog_rename)
+                    val cancelButton = renameDialog.findViewById<Button>(R.id.cancel_tb_dialog_rename)
+                    val textLayout = renameDialog.findViewById<TextInputLayout>(R.id.rename_dialog_text_layout)
+                    val newNameStr = textLayout?.editText?.text
+
+                    renameButton?.setOnClickListener{
+                        if (newNameStr != null) {
+                            renameFile(newNameStr.toString(), curFile, textLayout, renameDialog)
+                        }
+                    }
+
+                    cancelButton?.setOnClickListener{
+                        renameDialog.dismiss()
+                    }
 
                     true
                 }
@@ -105,10 +131,19 @@ onClickListener: OnItemClickListener)
                     true
                 }
                 R.id.delete -> {
+                    val message: String = if (curFile.isDirectory) {
+                        "Are you sure you want to permanently delete the file: " +
+                                "\"${curFile.name}\"?" +
+                                "\n\nWARNING: \"${curFile.name}\" is a directory, when you delete " +
+                                "a directory, the files in it will also be deleted."
+                    } else {
+                        "Are you sure you want to permanently delete the file: " +
+                                "\"${curFile.name}\"?"
+                    }
+
                     MaterialAlertDialogBuilder(context)
                         .setTitle("Delete a file?")
-                        .setMessage("Are you sure you want to permanently delete the file: " +
-                                "\"${curFile.name}\"?")
+                        .setMessage(message)
                         .setNeutralButton("Cancel") { _, _ ->
                         }
                         .setPositiveButton("Remove") { _, _ ->
@@ -127,14 +162,57 @@ onClickListener: OnItemClickListener)
     }
 
     private fun deleteFile(file: File) {
-        val isDeleted = file.delete()
-        if (isDeleted) {
-            mainListener.fileDelete(file)
-            Toast.makeText(context, "The file was successfully deleted.",
-                Toast.LENGTH_SHORT).show()
+        if (file.isDirectory) {
+            deleteRecursive(file)
+            mainListener.fileDeleted(file)
         } else {
-            Toast.makeText(context, "The file could not be deleted.",
-                Toast.LENGTH_SHORT).show()
+            val isDeleted = file.delete()
+            if (isDeleted) {
+                mainListener.fileDeleted(file)
+                Toast.makeText(context, "The file was successfully deleted.",
+                    Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "The file could not be deleted.",
+                    Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
+
+    private fun deleteRecursive(fileOrDirectory: File) {
+        if (fileOrDirectory.isDirectory) {
+            val tempFilesList = fileOrDirectory.listFiles()
+            if (tempFilesList != null) {
+                for (element in tempFilesList) {
+                    deleteRecursive(element)
+                }
+            }
+        }
+        fileOrDirectory.delete()
+    }
+
+    private fun renameFile(newNameStr: String, curFile: File, textLayout: TextInputLayout,
+                           renameDialog: AlertDialog) {
+        if (newNameStr.isNotEmpty()) {
+            val newFile = File(
+                curFile.parentFile?.path
+                        + "/" + newNameStr + "." + curFile.extension
+            )
+            if (newFile.exists()) {
+                textLayout.error = "The file already exists"
+            } else {
+                val isRenamed = curFile.renameTo(newFile)
+                if (isRenamed) {
+                    renameDialog.dismiss()
+                    mainListener.fileRenamed()
+                    Toast.makeText(context, "The file has been renamed", Toast.LENGTH_SHORT).show()
+                } else {
+                    textLayout.error = "Couldn't rename the file"
+                }
+            }
+
+        } else {
+            textLayout.error = "The file name cannot be empty"
         }
     }
 
