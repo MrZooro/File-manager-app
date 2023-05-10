@@ -6,42 +6,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".view.RecentChangesFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/wasteid_top_app_buttons_recentChanges"
-
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="16dp"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <Button
-            android:id="@+id/sort_by_button_recentChanges"
-
-            style="@style/Widget.Material3.Button.ElevatedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sort by"
-
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="16dp"/>
-
-        <Button
-            android:id="@+id/file_types_button_recentChanges"
-
-            style="@style/Widget.Material3.Button.ElevatedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="File types"
-
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toEndOf="@id/sort_by_button_recentChanges"
-            android:layout_marginStart="16dp"/>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recentChanges_recyclerView"
 
@@ -51,7 +15,7 @@
         android:overScrollMode="never"
         android:clipToPadding="false"
 
-        app:layout_constraintTop_toBottomOf="@id/wasteid_top_app_buttons_recentChanges"
+        app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

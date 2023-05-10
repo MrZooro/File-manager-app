@@ -1,13 +1,18 @@
 package com.example.filemanagerapp.view
 
+import android.R.attr.mimeType
+import android.R.attr.path
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
+import android.os.StrictMode
+import android.os.StrictMode.VmPolicy
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isGone
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -160,14 +165,6 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         return mutableFileList
     }
 
-    override fun onItemClick(clickedFile: File) {
-        if (clickedFile.isDirectory) {
-            viewModel.setCurFile(clickedFile)
-        } else {
-            Toast.makeText(requireContext(), "Okay, its file", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun updateRecyclerView(tempFilesList: Array<File>?, fileTypes: List<String>, sortBy: Int) {
         adapterList.clear()
 
@@ -187,6 +184,14 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
             binding.noFileTvHome.visibility = View.GONE
         }
         myAdapter.notifyDataSetChanged()
+    }
+
+    override fun onItemClick(clickedFile: File) {
+        if (clickedFile.isDirectory) {
+            viewModel.setCurFile(clickedFile)
+        } else {
+            Toast.makeText(requireContext(), "Okay, its file", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun fileDeleted(file: File) {
