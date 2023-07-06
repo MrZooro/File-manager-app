@@ -2,18 +2,14 @@ package com.example.filemanagerapp.view
 
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
-import com.example.filemanagerapp.R
-import com.example.filemanagerapp.databinding.FileCardBinding
 import com.example.filemanagerapp.databinding.FileTypeCardBinding
 import com.example.filemanagerapp.databinding.FragmentFileTypesBinding
-import com.example.filemanagerapp.databinding.FragmentSortByBinding
 import com.example.filemanagerapp.viewModel.MainViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlin.math.ceil

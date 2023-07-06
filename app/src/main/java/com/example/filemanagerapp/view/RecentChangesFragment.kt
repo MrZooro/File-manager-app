@@ -1,19 +1,22 @@
 package com.example.filemanagerapp.view
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
+import android.view.animation.Animation
+import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.filemanagerapp.databinding.FragmentRecentChangesBinding
-import com.example.filemanagerapp.model.room.FileEntity
 import com.example.filemanagerapp.viewModel.MainViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class RecentChangesFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
@@ -40,26 +43,14 @@ class RecentChangesFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
 
         adapterList = mutableListOf()
         myAdapter = FileRecyclerItem(adapterList, requireContext(), this)
-        binding.recentChangesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recentChangesRecyclerView.adapter = myAdapter
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.getRecentChanged().collect{
-                    val filesList = convertFileEntity(it)
-                    updateRecyclerView(filesList)
-                }
-            }
-        }
-    }
-
-    private fun convertFileEntity(fileEntities: List<FileEntity>): List<File> {
-        val fileList: MutableList<File> = mutableListOf()
-        for (i in fileEntities.indices) {
-            val tempFile = File(fileEntities[i].path)
-            fileList.add(tempFile)
-        }
-        return fileList
+        Handler(Looper.getMainLooper()).postDelayed(
+            {
+                updateRecyclerView(viewModel.getRecentFiles())
+            },
+            300
+        )
     }
 
     private fun updateRecyclerView(tempFilesList: List<File>?) {

@@ -1,12 +1,6 @@
 package com.example.filemanagerapp.view
 
-import android.R.attr.mimeType
-import android.R.attr.path
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.os.StrictMode
-import android.os.StrictMode.VmPolicy
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
