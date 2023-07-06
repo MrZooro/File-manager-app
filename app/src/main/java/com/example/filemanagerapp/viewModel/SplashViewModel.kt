@@ -17,6 +17,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.lang.Exception
 import java.math.BigInteger
+import java.nio.ByteBuffer
 import java.security.MessageDigest
 
 class SplashViewModel(application: Application) : AndroidViewModel(application) {
@@ -62,12 +63,14 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
                 var curFile: File
                 var newHash: String
                 var newFileEntity: FileEntity
+                val filesList: MutableList<FileEntity> = mutableListOf()
                 for (i in newFilesList.indices) {
                     curFile = newFilesList[i]
                     newHash = createSHA256(curFile)
                     newFileEntity = FileEntity(0, curFile.path, newHash, false)
-                    repository.addFile(newFileEntity)
+                    filesList.add(newFileEntity)
                 }
+                repository.insertAll(filesList)
                 databaseFilledMutableStateFlow.value = true
                 return@launch
             }
@@ -112,34 +115,27 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private val buffer = ByteArray(1024)
+    private var md: MessageDigest? = null
     private fun createSHA256(file: File): String {
+        if (md == null) {
+            md = MessageDigest.getInstance("SHA-256")
+        }
         try {
-            val inputStream = FileInputStream(file)
-
-            val md = MessageDigest.getInstance("SHA-256")
-
-            var bytesRead: Int
-            while (true) {
-                bytesRead = inputStream.read(buffer)
-                if (bytesRead > 0) {
-                    md.update(buffer, 0, bytesRead)
-                } else {
-                    inputStream.close()
-                    break
-                }
+            val channel = FileInputStream(file).channel
+            val buffer = ByteBuffer.allocateDirect(1024 * 1024) // используем прямой буфер, чтобы уменьшить копирование данных
+            while (channel.read(buffer) != -1) {
+                buffer.flip()
+                md?.update(buffer)
+                buffer.clear()
             }
-
-            val messageDigest = md.digest()
+            channel.close()
+            val messageDigest = md?.digest()
             val no = BigInteger(1, messageDigest)
-            var hashText = no.toString(16)
-            while (hashText.length < 32) {
-                hashText = "0$hashText"
-            }
-            return hashText
+            return String.format("%064x", no)
         } catch (e: Exception) {
             Log.e(tag, "createSHA_256: Сouldn't open the file: ${file.path}, ${e.stackTrace}")
         }
         return ""
     }
+
 }

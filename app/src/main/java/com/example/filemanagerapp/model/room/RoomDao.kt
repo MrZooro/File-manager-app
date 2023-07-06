@@ -38,4 +38,8 @@ interface RoomDao {
 
     @Query("UPDATE recentChanges SET isRecentChanged = :isRecentChanged WHERE id = :id")
     suspend fun updateRecentChanged(isRecentChanged: Boolean, id: Int)
+
+    @Insert
+    suspend fun insertAll(entities: List<FileEntity>)
+
 }

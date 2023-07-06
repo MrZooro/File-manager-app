@@ -51,6 +51,10 @@ class Repository(context: Context) {
         return roomDao.getFileId(path)
     }
 
+    suspend fun insertAll(list: List<FileEntity>) {
+        roomDao.insertAll(list)
+    }
+
     companion object {
         @Volatile
         private var INSTANCE: Repository? = null
