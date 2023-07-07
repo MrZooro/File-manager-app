@@ -1,18 +1,11 @@
 package com.example.filemanagerapp.viewModel
 
 import android.app.Application
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Environment
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.system.measureTimeMillis
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -87,7 +80,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun listFiles(directory: File): MutableList<File> {
         val allFilesList: MutableList<File> = mutableListOf()
         directory.listFiles()?.forEach { file ->
-            if (file.isFile) {
+            if (file.isFile && file.name[0] != '.') {
                 allFilesList.add(file)
             } else if (file.isDirectory) {
                 allFilesList.addAll(listFiles(file))
