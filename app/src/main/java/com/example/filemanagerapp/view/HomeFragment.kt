@@ -12,15 +12,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentHomeBinding
+import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
 import com.example.filemanagerapp.viewModel.MainViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 
 
-class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
+class HomeFragment : Fragment(), OnItemClickListener {
 
     private lateinit var binding: FragmentHomeBinding
     private lateinit var viewModel: MainViewModel
@@ -37,18 +37,14 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         return binding.root
     }
 
-    private lateinit var adapterList: MutableList<File>
     private lateinit var myAdapter: FileRecyclerItem
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as MainActivity).turnOnBottomNavigation()
 
-        adapterList= mutableListOf()
-        myAdapter = FileRecyclerItem(adapterList, requireContext(), this)
-        binding.homeRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        myAdapter = FileRecyclerItem(requireContext(), this)
         binding.homeRecyclerView.adapter = myAdapter
-
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
@@ -86,8 +82,6 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
                 }
             }
         }
-
-
 
         binding.backButtonHome.setOnClickListener{
             val tempFile = viewModel.getCurFile()
@@ -160,24 +154,24 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
     }
 
     private fun updateRecyclerView(tempFilesList: Array<File>?, fileTypes: List<String>, sortBy: Int) {
-        adapterList.clear()
+        val newList: MutableList<File> = mutableListOf()
 
         if (tempFilesList != null) {
             if (fileTypes.isNotEmpty()) {
                 val newFileList = getFilesByTypes(tempFilesList, fileTypes)
                 sortList(newFileList, sortBy)
-                adapterList.addAll(newFileList)
+                newList.addAll(newFileList)
             } else {
                 sortList(tempFilesList, sortBy)
-                adapterList.addAll(tempFilesList)
+                newList.addAll(tempFilesList)
             }
         }
-        if (adapterList.isEmpty()) {
+        if (newList.isEmpty()) {
             binding.noFileTvHome.visibility = View.VISIBLE
         } else {
             binding.noFileTvHome.visibility = View.GONE
         }
-        myAdapter.notifyDataSetChanged()
+        myAdapter.setNewList(newList)
     }
 
     override fun onItemClick(clickedFile: File) {
@@ -186,16 +180,6 @@ class HomeFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         } else {
             Toast.makeText(requireContext(), "Okay, its file", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    override fun fileDeleted(file: File) {
-        adapterList.remove(file)
-        myAdapter.notifyDataSetChanged()
-    }
-
-    override fun fileRenamed() {
-        updateRecyclerView(viewModel.getCurFile().listFiles(), viewModel.getFileTypes(),
-        viewModel.getSortBy())
     }
 
 

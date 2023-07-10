@@ -25,8 +25,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val fileTypesStateFlow: StateFlow<List<String>> = fileTypesMutableStateFlow
 
     private val recentFilesList: MutableList<File> = mutableListOf()
-    private val recentFilesMutableStateFlow: MutableStateFlow<List<File>>
-    = MutableStateFlow(recentFilesList.toList())
 
     fun setCurFile(newFile: File) {
         curFile = newFile

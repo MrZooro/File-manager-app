@@ -6,20 +6,15 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.filemanagerapp.databinding.FragmentRecentChangesBinding
+import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
 import com.example.filemanagerapp.viewModel.MainViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 
-class RecentChangesFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
+class RecentChangesFragment : Fragment(), OnItemClickListener {
 
     private lateinit var binding: FragmentRecentChangesBinding
     private lateinit var viewModel: MainViewModel
@@ -35,14 +30,12 @@ class RecentChangesFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
         return binding.root
     }
 
-    private lateinit var adapterList: MutableList<File>
     private lateinit var myAdapter: FileRecyclerItem
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapterList = mutableListOf()
-        myAdapter = FileRecyclerItem(adapterList, requireContext(), this)
+        myAdapter = FileRecyclerItem(requireContext(), this)
         binding.recentChangesRecyclerView.adapter = myAdapter
 
         Handler(Looper.getMainLooper()).postDelayed(
@@ -54,19 +47,15 @@ class RecentChangesFragment : Fragment(), FileRecyclerItem.OnItemClickListener {
     }
 
     private fun updateRecyclerView(tempFilesList: List<File>?) {
-        adapterList.clear()
+        val newList: MutableList<File> = mutableListOf()
+
         if (tempFilesList != null) {
-            adapterList.addAll(tempFilesList)
+            newList.addAll(tempFilesList)
         }
-        myAdapter.notifyDataSetChanged()
+        myAdapter.setNewList(newList)
     }
 
     override fun onItemClick(clickedFile: File) {
-    }
-
-    override fun fileDeleted(file: File) {
-    }
-
-    override fun fileRenamed() {
+        Toast.makeText(requireContext(), "Okay, its file", Toast.LENGTH_SHORT).show()
     }
 }

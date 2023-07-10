@@ -13,8 +13,11 @@ import android.widget.Toast
 import androidx.annotation.MenuRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.filemanagerapp.R
+import com.example.filemanagerapp.model.dataClasses.FileDiffUtil
+import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import java.io.File
@@ -22,19 +25,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class FileRecyclerItem(private val mainList: MutableList<File>, private val context: Context,
-onClickListener: OnItemClickListener)
+class FileRecyclerItem(private val context: Context, onClickListener: OnItemClickListener)
     : RecyclerView.Adapter<FileRecyclerItem.MyViewHolder>() {
 
     private var mainListener: OnItemClickListener = onClickListener
     private val fileSizePostfix = arrayOf(" bytes", " kilobytes", " megabytes", " gigabytes")
     private val dateFormat = SimpleDateFormat("dd.MM.yyyy, HH:mm:ss", Locale.getDefault())
     private val tag = "FileRecyclerItem"
-    interface OnItemClickListener{
-        fun onItemClick(clickedFile: File)
-        fun fileDeleted(file: File)
-        fun fileRenamed()
-    }
+
+    private val mainList: MutableList<File> = mutableListOf()
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardTitle: TextView = itemView.findViewById(R.id.file_card_title)
@@ -76,7 +75,7 @@ onClickListener: OnItemClickListener)
         }
 
         holder.moreButton.setOnClickListener{
-            showMenu(it, R.menu.file_menu, curFile)
+            showMenu(it, R.menu.file_menu, curFile, position)
         }
 
         var fileSize = curFile.length().toDouble()
@@ -91,7 +90,7 @@ onClickListener: OnItemClickListener)
         holder.cardFileDate.text = dateFormat.format(date)
     }
 
-    private fun showMenu(view: View, @MenuRes menuRes: Int, curFile: File) {
+    private fun showMenu(view: View, @MenuRes menuRes: Int, curFile: File, position: Int) {
         val popupMenu = PopupMenu(context, view)
         popupMenu.menuInflater.inflate(menuRes, popupMenu.menu)
 
@@ -111,7 +110,8 @@ onClickListener: OnItemClickListener)
 
                     renameButton?.setOnClickListener{
                         if (newNameStr != null) {
-                            renameFile(newNameStr.toString(), curFile, textLayout, renameDialog)
+                            renameFile(newNameStr.toString(), curFile, textLayout,
+                                renameDialog, position)
                         }
                     }
 
@@ -138,7 +138,7 @@ onClickListener: OnItemClickListener)
                         .setNeutralButton("Cancel") { _, _ ->
                         }
                         .setPositiveButton("Remove") { _, _ ->
-                            deleteFile(curFile)
+                            deleteFile(curFile, position)
                         }
                         .show()
                     true
@@ -152,14 +152,14 @@ onClickListener: OnItemClickListener)
         popupMenu.show()
     }
 
-    private fun deleteFile(file: File) {
+    private fun deleteFile(file: File, position: Int) {
         if (file.isDirectory) {
             deleteRecursive(file)
-            mainListener.fileDeleted(file)
+            deleteFileFromList(position)
         } else {
             val isDeleted = file.delete()
             if (isDeleted) {
-                mainListener.fileDeleted(file)
+                deleteFileFromList(position)
                 Toast.makeText(context, "The file was successfully deleted.",
                     Toast.LENGTH_SHORT).show()
             } else {
@@ -183,7 +183,7 @@ onClickListener: OnItemClickListener)
     }
 
     private fun renameFile(newNameStr: String, curFile: File, textLayout: TextInputLayout,
-                           renameDialog: AlertDialog) {
+                           renameDialog: AlertDialog, position: Int) {
         if (newNameStr.isNotEmpty()) {
             val newFile = if (curFile.extension.isNotEmpty()) {
                 File(
@@ -203,7 +203,7 @@ onClickListener: OnItemClickListener)
                 val isRenamed = curFile.renameTo(newFile)
                 if (isRenamed) {
                     renameDialog.dismiss()
-                    mainListener.fileRenamed()
+                    changeFileInList(newFile, position)
                     Toast.makeText(context, "The file has been renamed", Toast.LENGTH_SHORT).show()
                 } else {
                     textLayout.error = "Couldn't rename the file"
@@ -218,4 +218,24 @@ onClickListener: OnItemClickListener)
     override fun getItemCount(): Int {
         return mainList.size
     }
+
+    fun setNewList(newList: MutableList<File>) {
+        val fileDiffUtil = FileDiffUtil(mainList, newList)
+        val diffResult = DiffUtil.calculateDiff(fileDiffUtil)
+
+        mainList.clear()
+        mainList.addAll(newList)
+        diffResult.dispatchUpdatesTo(this)
+    }
+
+    private fun deleteFileFromList(position: Int) {
+        mainList.removeAt(position)
+        this.notifyItemRemoved(position)
+    }
+
+    private fun changeFileInList(newFile: File, position: Int) {
+        mainList[position] = newFile
+        this.notifyItemChanged(position)
+    }
+
 }

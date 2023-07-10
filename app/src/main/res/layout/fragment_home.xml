@@ -91,6 +91,7 @@
         tools:listitem="@layout/file_card"
         android:overScrollMode="never"
         android:clipToPadding="false"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
 
         app:layout_constraintTop_toBottomOf="@id/wasteid_top_app_buttons_home"
         android:layout_marginTop="16dp"
