@@ -13,13 +13,20 @@ import android.widget.Toast
 import androidx.annotation.MenuRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.filemanagerapp.R
 import com.example.filemanagerapp.model.dataClasses.FileDiffUtil
 import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
+import com.example.filemanagerapp.model.dataClasses.RecyclerViewFile
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -33,7 +40,7 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
     private val dateFormat = SimpleDateFormat("dd.MM.yyyy, HH:mm:ss", Locale.getDefault())
     private val tag = "FileRecyclerItem"
 
-    private val mainList: MutableList<File> = mutableListOf()
+    private val mainList: MutableList<RecyclerViewFile> = mutableListOf()
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardTitle: TextView = itemView.findViewById(R.id.file_card_title)
@@ -55,7 +62,8 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val curFile = mainList[position]
+        val curFile = mainList[position].file
+        val curRecyclerViewFile = mainList[position]
         holder.cardTitle.text = curFile.name
 
         if (curFile.isDirectory) {
@@ -71,23 +79,55 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
         }
 
         holder.cardButton.setOnClickListener{
-            mainListener.onItemClick(mainList[position])
+            mainListener.onItemClick(mainList[position].file)
         }
 
         holder.moreButton.setOnClickListener{
             showMenu(it, R.menu.file_menu, curFile, position)
         }
 
-        var fileSize = curFile.length().toDouble()
-        var sizePostfixIndex = 0
-        while (fileSize >= 1024.0) {
-            fileSize /= 1024
-            sizePostfixIndex++
+        if (curRecyclerViewFile.sizePostfixIndex == -1) {
+            if (context is LifecycleOwner) {
+                context.lifecycleScope.launch(Dispatchers.IO) {
+                    calculateFileSize(mainList[position], holder.cardFileSize)
+                }
+            } else {
+                CoroutineScope(Dispatchers.IO).launch {
+                    calculateFileSize(mainList[position], holder.cardFileSize)
+                }
+
+            }
+        } else {
+            holder.cardFileSize.text = String.format("%.1f", curRecyclerViewFile.fileSize) +
+                    fileSizePostfix[curRecyclerViewFile.sizePostfixIndex]
         }
-        holder.cardFileSize.text = String.format("%.1f", fileSize) + fileSizePostfix[sizePostfixIndex]
 
         val date = Date(curFile.lastModified())
         holder.cardFileDate.text = dateFormat.format(date)
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun calculateFileSize(fileOrDirectory: RecyclerViewFile, sizeTextView: TextView) {
+        val curFile = fileOrDirectory.file
+        if (curFile.isDirectory) {
+            curFile.walkTopDown().forEach { file ->
+                if (file.isFile) {
+                    fileOrDirectory.fileSize += file.length().toDouble()
+                }
+            }
+        }
+        fileOrDirectory.fileSize += curFile.length().toDouble()
+
+        fileOrDirectory.sizePostfixIndex = 0
+        while (fileOrDirectory.fileSize >= 1024.0) {
+            fileOrDirectory.fileSize /= 1024
+            fileOrDirectory.sizePostfixIndex++
+        }
+
+        CoroutineScope(Dispatchers.Main).launch {
+            sizeTextView.text = String.format("%.1f", fileOrDirectory.fileSize) +
+                    fileSizePostfix[fileOrDirectory.sizePostfixIndex]
+        }
     }
 
     private fun showMenu(view: View, @MenuRes menuRes: Int, curFile: File, position: Int) {
@@ -220,11 +260,16 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
     }
 
     fun setNewList(newList: MutableList<File>) {
-        val fileDiffUtil = FileDiffUtil(mainList, newList)
+        val tempNewList = mutableListOf<RecyclerViewFile>()
+        newList.forEach {
+            tempNewList.add(RecyclerViewFile(it, 0.0))
+        }
+
+        val fileDiffUtil = FileDiffUtil(mainList, tempNewList)
         val diffResult = DiffUtil.calculateDiff(fileDiffUtil)
 
         mainList.clear()
-        mainList.addAll(newList)
+        mainList.addAll(tempNewList)
         diffResult.dispatchUpdatesTo(this)
     }
 
@@ -234,7 +279,7 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
     }
 
     private fun changeFileInList(newFile: File, position: Int) {
-        mainList[position] = newFile
+        mainList[position] = RecyclerViewFile(newFile, 0.0)
         this.notifyItemChanged(position)
     }
 

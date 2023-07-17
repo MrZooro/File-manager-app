@@ -4,8 +4,8 @@ import androidx.recyclerview.widget.DiffUtil
 import java.io.File
 
 class FileDiffUtil(
-    private val oldList: List<File>,
-    private val newList: List<File>
+    private val oldList: List<RecyclerViewFile>,
+    private val newList: List<RecyclerViewFile>
 ): DiffUtil.Callback() {
 
     override fun getOldListSize(): Int {

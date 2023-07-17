@@ -9,9 +9,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.filemanagerapp.databinding.FragmentRecentChangesBinding
 import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
 import com.example.filemanagerapp.viewModel.MainViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 
 class RecentChangesFragment : Fragment(), OnItemClickListener {
@@ -38,12 +42,14 @@ class RecentChangesFragment : Fragment(), OnItemClickListener {
         myAdapter = FileRecyclerItem(requireContext(), this)
         binding.recentChangesRecyclerView.adapter = myAdapter
 
-        Handler(Looper.getMainLooper()).postDelayed(
-            {
-                updateRecyclerView(viewModel.getRecentFiles())
-            },
-            300
-        )
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val recentFiles = viewModel.getRecentFiles()
+
+
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                updateRecyclerView(recentFiles)
+            }
+        }
     }
 
     private fun updateRecyclerView(tempFilesList: List<File>?) {
