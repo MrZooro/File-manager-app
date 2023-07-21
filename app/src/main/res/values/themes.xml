@@ -42,7 +42,7 @@
         <item name="android:backgroundTint">@color/md_theme_light_primary</item>
     </style>
 
-    <style name="largeTitleText" parent="TextAppearance.Material3.BodyLarge">
+    <style name="largeTitleText" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:textColor">@color/md_theme_light_primary</item>
     </style>
 

@@ -3,11 +3,11 @@
     <item
         android:id="@+id/recentChangesFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_recent_changes_24"
+        android:icon="@drawable/selector_recent_changes_24"
         android:title="Recent changes"/>
     <item
         android:id="@+id/homeFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_file_manager_24"
+        android:icon="@drawable/selector_file_manager_24"
         android:title="File manager"/>
 </menu>

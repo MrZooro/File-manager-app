@@ -45,10 +45,12 @@ class RecentChangesFragment : Fragment(), OnItemClickListener {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val recentFiles = viewModel.getRecentFiles()
 
-
-            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                updateRecyclerView(recentFiles)
-            }
+            Handler(Looper.getMainLooper()).postDelayed(
+                {
+                    updateRecyclerView(recentFiles)
+                },
+                300
+            )
         }
     }
 
