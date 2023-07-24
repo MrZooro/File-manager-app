@@ -86,6 +86,7 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
             showMenu(it, R.menu.file_menu, curFile, position)
         }
 
+
         if (curRecyclerViewFile.sizePostfixIndex == -1) {
             if (context is LifecycleOwner) {
                 context.lifecycleScope.launch(Dispatchers.IO) {

@@ -75,6 +75,8 @@ class SplashFragment : Fragment() {
                     )
                 )
 
+            } else {
+                openHomeFragment()
             }
         } else {
             val result = ContextCompat.checkSelfPermission(requireContext(),
