@@ -28,6 +28,7 @@ class RecentChangesFragment : Fragment(), OnItemClickListener {
         savedInstanceState: Bundle?
     ): View {
 
+        (activity as MainActivity).turnOnBottomNavigation()
         binding = FragmentRecentChangesBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 

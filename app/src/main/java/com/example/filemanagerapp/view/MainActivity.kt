@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.view.isGone
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.filemanagerapp.R
@@ -25,14 +26,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun turnOnBottomNavigation() {
-        binding.bottomNavigation.visibility = View.VISIBLE
+        if (binding.bottomNavigation.isGone) {
+            binding.bottomNavigation.visibility = View.VISIBLE
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
-        binding.bottomNavigation.setupWithNavController(navController)
-    }
-
-    fun getBottomNavigation(): BottomNavigationView {
-        return binding.bottomNavigation
+            val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+            val navController = navHostFragment.navController
+            binding.bottomNavigation.setupWithNavController(navController)
+        }
     }
 }

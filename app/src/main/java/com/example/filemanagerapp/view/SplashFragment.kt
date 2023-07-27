@@ -1,18 +1,14 @@
 package com.example.filemanagerapp.view
 
-import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -118,38 +114,6 @@ class SplashFragment : Fragment() {
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
             result != PackageManager.PERMISSION_DENIED
-        }
-    }
-
-    private fun checkPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                val uri = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
-                startActivity(
-                    Intent(
-                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                        uri
-                    )
-                )
-
-            } else {
-                openHomeFragment()
-            }
-        } else {
-            val result = ContextCompat.checkSelfPermission(requireContext(),
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-            if (result == PackageManager.PERMISSION_DENIED) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
-                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Toast.makeText(requireContext(), "Storage permission is requires," +
-                            "please allow from settings", Toast.LENGTH_SHORT).show()
-                } else {
-                    requestPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                }
-            } else {
-                openHomeFragment()
-            }
         }
     }
 
