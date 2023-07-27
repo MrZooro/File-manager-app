@@ -1,18 +1,25 @@
 package com.example.filemanagerapp.view
 
+import android.animation.AnimatorInflater
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.constraintlayout.motion.widget.MotionLayout
+import androidx.core.animation.doOnEnd
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -20,6 +27,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.filemanagerapp.BuildConfig
 import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentSplashBinding
+
 
 class SplashFragment : Fragment() {
 
@@ -38,30 +46,79 @@ class SplashFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.motionLayoutSplash.setTransitionListener(object : MotionLayout.TransitionListener {
+        val appIconAnim = ObjectAnimator.ofFloat(
+            binding.wasteidFileManagerIconSplash, "alpha",
+            0.0f, 1.0f
+        )
+        appIconAnim.duration = 200
+        appIconAnim.interpolator = LinearInterpolator()
 
-            override fun onTransitionCompleted(motionLayout: MotionLayout?, currentId: Int) {
-                binding.startButtonSplash.setOnClickListener{
-                    checkPermissions()
+        appIconAnim.doOnEnd {
+            val permission = if (isAdded) {
+                isPermissionGranted()
+            } else {
+                return@doOnEnd
+            }
+
+            if (permission) {
+                openHomeFragment()
+            } else {
+                val scaleXAnim = ObjectAnimator.ofFloat(
+                    binding.startButtonSplash, "scaleX",
+                    0.0f, 1.0f
+                )
+                val fadeOutAnim = ObjectAnimator.ofFloat(
+                    binding.startButtonSplash, "alpha",
+                    0.0f, 1.0f
+                )
+
+                val animatorSet = AnimatorSet()
+                animatorSet.duration = 200
+                animatorSet.interpolator = LinearInterpolator()
+                animatorSet.playTogether(scaleXAnim, fadeOutAnim)
+
+                animatorSet.doOnEnd {
+                    binding.startButtonSplash.setOnClickListener {
+                        requestPermissions()
+                    }
                 }
+
+                animatorSet.start()
             }
+        }
+        appIconAnim.start()
+    }
 
-            override fun onTransitionStarted(motionLayout: MotionLayout?, startId: Int, endId: Int
-            ) {
+    private fun requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val uri = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    uri
+                )
+            )
+        } else {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Toast.makeText(requireContext(), "Storage permission is requires," +
+                        "please allow from settings", Toast.LENGTH_SHORT).show()
+            } else {
+                requestPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
             }
+        }
+    }
 
-            override fun onTransitionChange(motionLayout: MotionLayout?, startId: Int, endId: Int,
-                                            progress: Float
-            ) {
-            }
+    private fun isPermissionGranted(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager()
+        } else {
+            val result = ContextCompat.checkSelfPermission(requireContext(),
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-            override fun onTransitionTrigger(motionLayout: MotionLayout?, triggerId: Int, positive: Boolean,
-                progress: Float
-            ) {
-            }
-
-        })
-
+            result != PackageManager.PERMISSION_DENIED
+        }
     }
 
     private fun checkPermissions() {
