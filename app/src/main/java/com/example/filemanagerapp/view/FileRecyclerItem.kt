@@ -261,17 +261,27 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
     }
 
     fun setNewList(newList: MutableList<File>) {
+
         val tempNewList = mutableListOf<RecyclerViewFile>()
+
         newList.forEach {
             tempNewList.add(RecyclerViewFile(it, 0.0))
         }
 
-        val fileDiffUtil = FileDiffUtil(mainList, tempNewList)
-        val diffResult = DiffUtil.calculateDiff(fileDiffUtil)
+        if (mainList.isEmpty()) {
 
-        mainList.clear()
-        mainList.addAll(tempNewList)
-        diffResult.dispatchUpdatesTo(this)
+            mainList.addAll(tempNewList)
+            this.notifyItemRangeInserted(0, mainList.size)
+        } else {
+
+            val fileDiffUtil = FileDiffUtil(mainList, tempNewList)
+            val diffResult = DiffUtil.calculateDiff(fileDiffUtil)
+
+            mainList.clear()
+            mainList.addAll(tempNewList)
+
+            diffResult.dispatchUpdatesTo(this)
+        }
     }
 
     private fun deleteFileFromList(position: Int) {
@@ -282,6 +292,11 @@ class FileRecyclerItem(private val context: Context, onClickListener: OnItemClic
     private fun changeFileInList(newFile: File, position: Int) {
         mainList[position] = RecyclerViewFile(newFile, 0.0)
         this.notifyItemChanged(position)
+    }
+
+    fun removeAllFiles() {
+        this.notifyItemRangeRemoved(0, mainList.size)
+        mainList.clear()
     }
 
 }

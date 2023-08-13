@@ -55,13 +55,8 @@ class RecentChangesFragment : Fragment(), OnItemClickListener {
         }
     }
 
-    private fun updateRecyclerView(tempFilesList: List<File>?) {
-        val newList: MutableList<File> = mutableListOf()
-
-        if (tempFilesList != null) {
-            newList.addAll(tempFilesList)
-        }
-        myAdapter.setNewList(newList)
+    private fun updateRecyclerView(tempFilesList: List<File>) {
+        myAdapter.setNewList(tempFilesList.toMutableList())
     }
 
     override fun onItemClick(clickedFile: File) {

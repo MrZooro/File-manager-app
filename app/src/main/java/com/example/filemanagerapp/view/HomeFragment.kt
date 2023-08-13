@@ -1,12 +1,19 @@
 package com.example.filemanagerapp.view
 
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnticipateInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
+import androidx.constraintlayout.motion.widget.MotionLayout
+import androidx.constraintlayout.utils.widget.MotionLabel
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -18,9 +25,9 @@ import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentHomeBinding
 import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
 import com.example.filemanagerapp.viewModel.MainViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.math.ceil
 
 
 class HomeFragment : Fragment(), OnItemClickListener {
@@ -42,43 +49,70 @@ class HomeFragment : Fragment(), OnItemClickListener {
     }
 
     private lateinit var myAdapter: FileRecyclerItem
+    private var isFragmentOpening = true
 
+    @SuppressLint("ObjectAnimatorBinding")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         myAdapter = FileRecyclerItem(requireContext(), this)
         binding.homeRecyclerView.adapter = myAdapter
 
+        viewModel.getFilesInDirectory()
+
+        val noFileTvAnim = ObjectAnimator.ofFloat(
+            binding.noFileTvHome, "alpha",
+            0.0f, 1.0f
+        )
+        noFileTvAnim.duration = 400
+        noFileTvAnim.interpolator = AnticipateInterpolator()
+
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.filesInDirectoryStateFlow.collect { filesList ->
 
                     val newRoot = viewModel.getCurFile()
-                    binding.pathTvHome.text = newRoot.path
+
                     if (newRoot == viewModel.defaultDirectory) {
-                        binding.backButtonHome.visibility = View.GONE
-                    } else if (binding.backButtonHome.isGone){
-                        binding.backButtonHome.visibility = View.VISIBLE
+                        binding.pathTvHome.text = "/"
+                        binding.topAppBarHome.transitionToStart()
+                    } else {
+                        val startPathIndex = viewModel.defaultDirectory.path.length
+                        binding.pathTvHome.text = newRoot.path.substring(startPathIndex)
+
+                        if (binding.backButtonHome.alpha == 0f){
+                            binding.topAppBarHome.transitionToEnd()
+                        }
                     }
 
-                    if (filesList.isEmpty()) {
-                        binding.noFileTvHome.visibility = View.VISIBLE
+                    val delayMillis: Long = if (isFragmentOpening) {
+                        isFragmentOpening = false
+                        300
                     } else {
-                        binding.noFileTvHome.visibility = View.GONE
+                        myAdapter.removeAllFiles()
+                        200
                     }
 
                     Handler(Looper.getMainLooper()).postDelayed(
                         {
-                            myAdapter.setNewList(filesList.toMutableList())
+
+                            if (filesList.isEmpty()) {
+                                myAdapter.removeAllFiles()
+
+                                noFileTvAnim.start()
+                            } else {
+                                noFileTvAnim.end()
+                                binding.noFileTvHome.alpha = 0f
+                                myAdapter.setNewList(filesList.toMutableList())
+                            }
                         },
-                        300
+                        delayMillis
                     )
 
                 }
             }
         }
-
-        viewModel.getFilesInDirectory()
 
         binding.backButtonHome.setOnClickListener{
             val tempFile = viewModel.getCurFile()
