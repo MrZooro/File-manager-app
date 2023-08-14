@@ -1,20 +1,17 @@
 package com.example.filemanagerapp.view
 
 import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnticipateInterpolator
-import android.view.animation.LinearInterpolator
 import android.widget.Toast
-import androidx.constraintlayout.motion.widget.MotionLayout
-import androidx.constraintlayout.utils.widget.MotionLabel
-import androidx.core.view.isGone
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -27,7 +24,6 @@ import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
 import com.example.filemanagerapp.viewModel.MainViewModel
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.math.ceil
 
 
 class HomeFragment : Fragment(), OnItemClickListener {
@@ -54,6 +50,29 @@ class HomeFragment : Fragment(), OnItemClickListener {
     @SuppressLint("ObjectAnimatorBinding")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.openHomeFragment = true
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val rootFile = viewModel.getCurFile()
+                if (rootFile != viewModel.defaultDirectory) {
+                    val parentFile = rootFile.parentFile
+                    if (parentFile != null) {
+                        viewModel.setCurFile(parentFile)
+                    }
+                } else {
+                    if (viewModel.openRecentFragment) {
+                        viewModel.openHomeFragment = false
+                        findNavController().navigate(R.id.action_homeFragment_to_recentChangesFragment)
+                    } else {
+                        requireActivity().finish()
+                    }
+                }
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, onBackPressedCallback)
+
+
 
         myAdapter = FileRecyclerItem(requireContext(), this)
         binding.homeRecyclerView.adapter = myAdapter

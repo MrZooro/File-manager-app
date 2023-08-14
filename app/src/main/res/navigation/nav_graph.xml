@@ -9,7 +9,7 @@
         android:id="@+id/splashFragment"
         android:name="com.example.filemanagerapp.view.SplashFragment"
         android:label="fragment_splash"
-        tools:layout="@layout/fragment_splash" >
+        tools:layout="@layout/fragment_splash">
         <action
             android:id="@+id/action_splashFragment_to_homeFragment"
             app:destination="@id/homeFragment"
@@ -21,10 +21,13 @@
         android:id="@+id/homeFragment"
         android:name="com.example.filemanagerapp.view.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" >
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_homeFragment_to_sortByFragment"
             app:destination="@id/sortByFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_recentChangesFragment"
+            app:destination="@id/recentChangesFragment" />
     </fragment>
     <dialog
         android:id="@+id/sortByFragment"
@@ -39,5 +42,9 @@
         android:id="@+id/recentChangesFragment"
         android:name="com.example.filemanagerapp.view.RecentChangesFragment"
         android:label="fragment_recent_changes"
-        tools:layout="@layout/fragment_recent_changes" />
+        tools:layout="@layout/fragment_recent_changes" >
+        <action
+            android:id="@+id/action_recentChangesFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
 </navigation>

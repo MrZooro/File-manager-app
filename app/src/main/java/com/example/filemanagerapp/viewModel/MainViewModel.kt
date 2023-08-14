@@ -29,6 +29,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val filesInDirectoryStateFlow: StateFlow<List<File>> = filesInDirectoryMutableStateFlow.asStateFlow()
 
     private val recentFilesList: MutableList<File> = mutableListOf()
+
+    var openRecentFragment: Boolean = false
+    var openHomeFragment: Boolean = false
+
      fun getFilesInDirectory() {
          viewModelScope.launch(Dispatchers.IO) {
              getFilesInDirectory(curFile.listFiles(), fileTypesList, sortBy)

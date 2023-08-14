@@ -2,4 +2,7 @@
     <string name="app_name">File manager app</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <integer name="homeFragmentId">0</integer>
+    <integer name="recentFragmentId">1</integer>
 </resources>
