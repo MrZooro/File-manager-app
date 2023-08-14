@@ -88,22 +88,30 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/home_recyclerView"
-
-        android:layout_width="0dp"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refresh_layout_home"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        tools:listitem="@layout/file_card"
-        android:overScrollMode="never"
-        android:clipToPadding="false"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:context=".view.HomeFragment"
 
         app:layout_constraintTop_toBottomOf="@id/wasteid_top_app_buttons_home"
-        android:layout_marginTop="8dp"
-
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/home_recyclerView"
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/file_card"
+            android:overScrollMode="never"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+
+            android:paddingTop="8dp"/>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <TextView
         android:id="@+id/no_file_tv_home"
@@ -115,9 +123,9 @@
         android:alpha="0"
         style="@style/largeTitleText"
 
-        app:layout_constraintTop_toTopOf="@id/home_recyclerView"
-        app:layout_constraintBottom_toBottomOf="@id/home_recyclerView"
-        app:layout_constraintStart_toStartOf="@id/home_recyclerView"
-        app:layout_constraintEnd_toEndOf="@id/home_recyclerView"/>
+        app:layout_constraintTop_toTopOf="@id/refresh_layout_home"
+        app:layout_constraintBottom_toBottomOf="@id/refresh_layout_home"
+        app:layout_constraintStart_toStartOf="@id/refresh_layout_home"
+        app:layout_constraintEnd_toEndOf="@id/refresh_layout_home"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

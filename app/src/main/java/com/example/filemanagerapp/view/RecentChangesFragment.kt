@@ -43,6 +43,17 @@ class RecentChangesFragment : Fragment(), OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.refreshLayoutRecentChanges.isRefreshing = true
+        binding.refreshLayoutRecentChanges.setOnRefreshListener {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                val recentFiles = viewModel.getRecentFiles()
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                    updateRecyclerView(recentFiles)
+                    binding.refreshLayoutRecentChanges.isRefreshing = false
+                }
+            }
+        }
+
         viewModel.openRecentFragment = true
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -65,6 +76,7 @@ class RecentChangesFragment : Fragment(), OnItemClickListener {
             Handler(Looper.getMainLooper()).postDelayed(
                 {
                     updateRecyclerView(recentFiles)
+                    binding.refreshLayoutRecentChanges.isRefreshing = false
                 },
                 300
             )

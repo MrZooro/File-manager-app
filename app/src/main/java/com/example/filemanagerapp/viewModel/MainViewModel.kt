@@ -39,6 +39,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
          }
      }
 
+    fun updateFilesInDirectory() {
+        getFilesInDirectory(curFile.listFiles(), fileTypesList, sortBy)
+    }
+
     fun setCurFile(newFile: File) {
         curFile = newFile
 
@@ -78,6 +82,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun getFilesInDirectory(tempFilesList: Array<File>?, fileTypes: List<String>, sortBy: Int) {
         filesInDirectory.clear()
+        filesInDirectoryMutableStateFlow.value = filesInDirectory.toList()
         val newList: MutableList<File> = mutableListOf()
 
         if (tempFilesList != null) {

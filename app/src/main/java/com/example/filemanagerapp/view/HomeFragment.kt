@@ -22,6 +22,7 @@ import com.example.filemanagerapp.R
 import com.example.filemanagerapp.databinding.FragmentHomeBinding
 import com.example.filemanagerapp.model.dataClasses.OnItemClickListener
 import com.example.filemanagerapp.viewModel.MainViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -51,6 +52,8 @@ class HomeFragment : Fragment(), OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.refreshLayoutHome.isRefreshing = true
+
         viewModel.openHomeFragment = true
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -72,6 +75,10 @@ class HomeFragment : Fragment(), OnItemClickListener {
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, onBackPressedCallback)
 
+        binding.refreshLayoutHome.setOnRefreshListener {
+            updateHomeRecyclerView()
+        }
+
 
 
         myAdapter = FileRecyclerItem(requireContext(), this)
@@ -90,7 +97,6 @@ class HomeFragment : Fragment(), OnItemClickListener {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.filesInDirectoryStateFlow.collect { filesList ->
-
                     val newRoot = viewModel.getCurFile()
 
                     if (newRoot == viewModel.defaultDirectory) {
@@ -125,6 +131,8 @@ class HomeFragment : Fragment(), OnItemClickListener {
                                 binding.noFileTvHome.alpha = 0f
                                 myAdapter.setNewList(filesList.toMutableList())
                             }
+
+                            binding.refreshLayoutHome.isRefreshing = false
                         },
                         delayMillis
                     )
@@ -152,6 +160,13 @@ class HomeFragment : Fragment(), OnItemClickListener {
             frag.show(requireActivity().supportFragmentManager, "Something")
         }
 
+    }
+
+    private fun updateHomeRecyclerView() {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            viewModel.updateFilesInDirectory()
+            binding.refreshLayoutHome.isRefreshing = false
+        }
     }
 
     override fun onItemClick(clickedFile: File) {
